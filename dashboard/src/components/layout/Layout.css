@@ -1,0 +1,99 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.layout-content {
+  display: flex;
+  flex: 1;
+  height: calc(100% - 60px - 40px); /* Высота - (header + footer) */
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  transition: margin-left var(--transition-speed);
+  margin-left: 250px; /* Ширина сайдбара */
+}
+
+.main-content.sidebar-closed {
+  margin-left: 0;
+}
+
+/* Стили для заголовков страниц */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.page-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.page-header p {
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.title-section {
+  flex: 1;
+}
+
+.actions-section {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Стили для секций */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.view-all {
+  font-size: var(--font-size-sm);
+  color: var(--primary-color);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 200px;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-content {
+    flex-direction: column;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    max-height: calc(100vh - 60px - 40px); /* Высота - (header + footer) */
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .actions-section {
+    width: 100%;
+  }
+}

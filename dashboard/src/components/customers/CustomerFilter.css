@@ -1,0 +1,135 @@
+.customer-filter {
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.search-filter {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 2.25rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+}
+
+.clear-search {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--gray-500);
+}
+
+.clear-search:hover {
+  color: var(--gray-700);
+}
+
+.sort-filter {
+  min-width: 200px;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sort-controls select {
+  flex: 1;
+}
+
+.sort-order-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  background-color: white;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.sort-order-toggle:hover {
+  background-color: var(--gray-100);
+}
+
+.filter-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: flex-end;
+}
+
+.reset-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.reset-filters:hover {
+  background-color: var(--gray-100);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .filter-actions {
+    margin-left: 0;
+  }
+
+  .reset-filters {
+    width: 100%;
+    justify-content: center;
+  }
+}

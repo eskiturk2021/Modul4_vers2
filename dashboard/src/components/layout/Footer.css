@@ -1,0 +1,30 @@
+.footer {
+  height: 40px;
+  background-color: white;
+  border-top: 1px solid var(--gray-200);
+  padding: 0 1.5rem;
+  z-index: 10;
+}
+
+.footer-content {
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.copyright, .version {
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .footer {
+    padding: 0 1rem;
+  }
+
+  .version {
+    display: none;
+  }
+}
