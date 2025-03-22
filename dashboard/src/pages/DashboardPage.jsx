@@ -19,13 +19,29 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
+        // Используем Promise.all с индивидуальной обработкой ошибок для каждого запроса
+        const statsPromise = getDashboardStats().catch(err => {
+          console.error('Ошибка при загрузке статистики:', err);
+          return null;
+        });
+
+        const activityPromise = getRecentActivity().catch(err => {
+          console.error('Ошибка при загрузке активности:', err);
+          return [];
+        });
+
         const [statsData, activityData] = await Promise.all([
-          getDashboardStats(),
-          getRecentActivity()
+          statsPromise,
+          activityPromise
         ]);
 
-        setStats(statsData);
-        setActivity(activityData);
+        if (statsData) {
+          setStats(statsData);
+        } else {
+          setError(prev => prev || 'Не удалось загрузить статистику');
+        }
+
+        setActivity(activityData || []);
       } catch (err) {
         console.error('Ошибка при загрузке данных дашборда:', err);
         setError('Не удалось загрузить данные дашборда');
@@ -46,9 +62,13 @@ const DashboardPage = () => {
     return <Loader />;
   }
 
-  if (error) {
+  if (error && !stats) {
     return <div className="error-message">{error}</div>;
   }
+
+  // Безопасный доступ к данным
+  const safeStats = stats || {};
+  const getTrendValue = (trend) => trend ? trend : { direction: 'same', value: 0 };
 
   return (
     <div className="dashboard-page">
@@ -60,26 +80,26 @@ const DashboardPage = () => {
       <div className="dashboard-stats">
         <StatCard
           title="Всего клиентов"
-          value={stats?.totalCustomers || 0}
-          trend={stats?.totalCustomersTrend}
+          value={safeStats.totalCustomers || 0}
+          trend={getTrendValue(safeStats.totalCustomersTrend)}
           icon="users"
         />
         <StatCard
           title="Новые клиенты"
-          value={stats?.newCustomers || 0}
-          trend={stats?.newCustomersTrend}
+          value={safeStats.newCustomers || 0}
+          trend={getTrendValue(safeStats.newCustomersTrend)}
           icon="user-plus"
         />
         <StatCard
           title="Повторные клиенты"
-          value={stats?.returningCustomersPercentage || "0%"}
-          trend={stats?.returningCustomersTrend}
+          value={safeStats.returningCustomersPercentage || "0%"}
+          trend={getTrendValue(safeStats.returningCustomersTrend)}
           icon="repeat"
         />
         <StatCard
           title="Запланированные записи"
-          value={stats?.scheduledAppointments || 0}
-          trend={stats?.scheduledAppointmentsTrend}
+          value={safeStats.scheduledAppointments || 0}
+          trend={getTrendValue(safeStats.scheduledAppointmentsTrend)}
           icon="calendar"
         />
       </div>
@@ -88,12 +108,12 @@ const DashboardPage = () => {
         <ChartCard
           title="Клиенты по месяцам"
           chartType="line"
-          data={stats?.customersChart || []}
+          data={safeStats.customersChart || []}
         />
         <ChartCard
           title="Записи по услугам"
           chartType="pie"
-          data={stats?.servicesPieChart || []}
+          data={safeStats.servicesPieChart || []}
         />
       </div>
 
@@ -112,19 +132,27 @@ const DashboardPage = () => {
             <Link to="/appointments" className="view-all">Смотреть всё</Link>
           </div>
           <div className="upcoming-appointments">
-            {stats?.upcomingAppointments ? (
-              stats.upcomingAppointments.map(appointment => (
+            {safeStats.upcomingAppointments && safeStats.upcomingAppointments.length > 0 ? (
+              safeStats.upcomingAppointments.map(appointment => (
                 <div key={appointment.id} className="appointment-card">
                   <div className="appointment-time">
-                    <div className="date">{new Date(appointment.date).toLocaleDateString('ru-RU')}</div>
-                    <div className="time">{appointment.time}</div>
+                    <div className="date">
+                      {appointment.date ?
+                        new Date(appointment.date).toLocaleDateString('ru-RU') :
+                        'Дата не указана'}
+                    </div>
+                    <div className="time">{appointment.time || 'Время не указано'}</div>
                   </div>
                   <div className="appointment-details">
-                    <div className="customer-name">{appointment.customer.name}</div>
-                    <div className="service-type">{appointment.service.name}</div>
+                    <div className="customer-name">
+                      {appointment.customer?.name || 'Имя не указано'}
+                    </div>
+                    <div className="service-type">
+                      {appointment.service?.name || 'Услуга не указана'}
+                    </div>
                   </div>
-                  <div className={`appointment-status status-${appointment.status}`}>
-                    {appointment.status}
+                  <div className={`appointment-status status-${appointment.status || 'unknown'}`}>
+                    {appointment.status || 'Не определен'}
                   </div>
                 </div>
               ))

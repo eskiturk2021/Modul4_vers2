@@ -1,7 +1,7 @@
 // Страница клиентов
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getCustomers } from '../api/customersApi';
+import { getCustomers, createCustomer } from '../api/customersApi';
 import CustomerList from '../components/customers/CustomerList';
 import CustomerFilter from '../components/customers/CustomerFilter';
 import Button from '../components/common/Button';
@@ -47,16 +47,15 @@ const CustomersPage = () => {
     }
   };
 
-  // Загрузка клиентов при первой загрузке компонента
+  // Загрузка клиентов при первой загрузке компонента или изменении фильтров
   useEffect(() => {
-    loadCustomers();
-  }, []);
+    loadCustomers(1, filters);
+  }, [filters]); // Добавлена зависимость от filters
 
   // Обработка изменения фильтров
   const handleFilterChange = (newFilters) => {
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
-    loadCustomers(1, updatedFilters);
   };
 
   // Обработка изменения страницы
@@ -76,10 +75,20 @@ const CustomersPage = () => {
 
   // Обработка создания клиента
   const handleCreateCustomer = async (customerData) => {
-    // Создание клиента будет реализовано в CustomerForm
-    // После успешного создания перезагружаем список
-    loadCustomers();
-    closeModal();
+    try {
+      setIsLoading(true);
+      // Использование API для создания клиента
+      await createCustomer(customerData);
+      // После успешного создания перезагружаем список
+      loadCustomers(pagination.currentPage);
+      closeModal();
+    } catch (err) {
+      console.error('Ошибка при создании клиента:', err);
+      // Здесь можно добавить обработку ошибки, например, показать уведомление
+      // Если используется NotificationContext, можно вызвать showError
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading && customers.length === 0) {
@@ -144,6 +153,7 @@ const CustomersPage = () => {
         onClose={closeModal}
         title="Добавить клиента"
       >
+        {/* Предполагается, что CustomerForm уже реализован */}
         <CustomerForm
           onSubmit={handleCreateCustomer}
           onCancel={closeModal}
