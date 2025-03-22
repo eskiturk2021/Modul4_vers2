@@ -1,0 +1,6 @@
+# Игнорировать папку golosai
+golosai/
+
+# Игнорировать папку External Libraries и Scratches and Consoles (если они существуют в структуре проекта)
+External Libraries/
+Scratches and Consoles/
