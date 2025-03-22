@@ -73,63 +73,110 @@ const themeVariables = {
 
 export const ThemeContext = createContext();
 
+// Безопасная проверка доступности медиа-запросов
+const isMediaQuerySupported = () => {
+  return typeof window !== 'undefined' && window.matchMedia;
+};
+
+// Безопасное получение системной темы
+const getSystemTheme = () => {
+  if (!isMediaQuerySupported()) {
+    return THEMES.LIGHT; // По умолчанию, если API недоступно
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? THEMES.DARK
+    : THEMES.LIGHT;
+};
+
 export const ThemeProvider = ({ children }) => {
   // Используем localStorage для сохранения темы
-  const storedTheme = localStorage.getItem('theme') || THEMES.SYSTEM;
-  const [theme, setThemeState] = useState(storedTheme);
-  const [systemTheme, setSystemTheme] = useState(() => {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? THEMES.DARK
-      : THEMES.LIGHT;
-  });
+  const getStoredTheme = () => {
+    try {
+      return localStorage.getItem('theme') || THEMES.SYSTEM;
+    } catch (error) {
+      console.error('Ошибка при доступе к localStorage:', error);
+      return THEMES.SYSTEM;
+    }
+  };
+
+  const [theme, setThemeState] = useState(getStoredTheme);
+  const [systemTheme, setSystemTheme] = useState(getSystemTheme);
 
   // Применяет переменные темы к документу
   const applyTheme = useCallback((themeName) => {
-    const themeVars = themeVariables[themeName];
-    if (themeVars) {
-      Object.entries(themeVars).forEach(([property, value]) => {
-        document.documentElement.style.setProperty(property, value);
-      });
+    // Проверяем, что themeName - это одна из поддерживаемых тем
+    if (!Object.values(THEMES).includes(themeName)) {
+      themeName = THEMES.LIGHT; // Используем светлую тему по умолчанию
     }
-  }, []);
+
+    // Если это системная тема, используем текущую системную тему
+    const finalTheme = themeName === THEMES.SYSTEM ? systemTheme : themeName;
+
+    // Проверяем, существует ли такая тема
+    const themeVars = themeVariables[finalTheme];
+    if (!themeVars) {
+      console.error(`Тема '${finalTheme}' не определена`);
+      return;
+    }
+
+    // Применяем переменные темы
+    Object.entries(themeVars).forEach(([property, value]) => {
+      document.documentElement.style.setProperty(property, value);
+    });
+  }, [systemTheme]);
 
   // Устанавливает тему и сохраняет в localStorage
   const setTheme = useCallback((newTheme) => {
+    // Проверяем, что newTheme - это одна из поддерживаемых тем
+    if (!Object.values(THEMES).includes(newTheme)) {
+      console.error(`Тема '${newTheme}' не поддерживается`);
+      newTheme = THEMES.LIGHT; // Используем светлую тему по умолчанию
+    }
+
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch (error) {
+      console.error('Ошибка при записи в localStorage:', error);
+    }
   }, []);
 
-  // Переключает между светлой и темной темой
+  // Переключает между темами с учетом системной темы
   const toggleTheme = useCallback(() => {
-    const newTheme = theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+    const currentTheme = theme === THEMES.SYSTEM ? systemTheme : theme;
+    const newTheme = currentTheme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
     setTheme(newTheme);
-  }, [theme, setTheme]);
+  }, [theme, systemTheme, setTheme]);
 
   // Отслеживаем изменение системной темы
   useEffect(() => {
-    if (window.matchMedia) {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (!isMediaQuerySupported()) {
+      return; // Выходим, если API не поддерживается
+    }
 
-      const handleChange = (e) => {
-        setSystemTheme(e.matches ? THEMES.DARK : THEMES.LIGHT);
-      };
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-      // Добавляем слушатель
-      if (mediaQuery.addEventListener) {
-        mediaQuery.addEventListener('change', handleChange);
-      } else {
-        // Для старых браузеров
-        mediaQuery.addListener(handleChange);
-      }
+    const handleChange = (e) => {
+      setSystemTheme(e.matches ? THEMES.DARK : THEMES.LIGHT);
+    };
+
+    // Единообразно используем современный API, с запасным вариантом для старых браузеров
+    try {
+      // Современный способ добавления слушателя
+      mediaQuery.addEventListener('change', handleChange);
 
       // Очистка при размонтировании
       return () => {
-        if (mediaQuery.removeEventListener) {
-          mediaQuery.removeEventListener('change', handleChange);
-        } else {
-          // Для старых браузеров
-          mediaQuery.removeListener(handleChange);
-        }
+        mediaQuery.removeEventListener('change', handleChange);
+      };
+    } catch (error) {
+      // Для старых браузеров
+      mediaQuery.addListener(handleChange);
+
+      // Очистка при размонтировании
+      return () => {
+        mediaQuery.removeListener(handleChange);
       };
     }
   }, []);
@@ -141,12 +188,18 @@ export const ThemeProvider = ({ children }) => {
     applyTheme(currentTheme);
   }, [theme, systemTheme, applyTheme]);
 
+  // Получаем актуальную текущую тему (светлая или темная)
+  const getCurrentTheme = useCallback(() => {
+    return theme === THEMES.SYSTEM ? systemTheme : theme;
+  }, [theme, systemTheme]);
+
   const value = {
     theme,
     setTheme,
     toggleTheme,
     systemTheme,
-    isCurrentThemeDark: theme === THEMES.DARK || (theme === THEMES.SYSTEM && systemTheme === THEMES.DARK)
+    getCurrentTheme,
+    isCurrentThemeDark: getCurrentTheme() === THEMES.DARK
   };
 
   return (
