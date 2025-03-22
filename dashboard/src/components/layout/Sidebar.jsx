@@ -87,4 +87,40 @@ const Sidebar = ({ isOpen }) => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/customers" className={({ isActive
+            <NavLink to="/customers" className={({ isActive }) => isActive ? 'active' : ''}>
+              <CustomersIcon />
+              <span>Клиенты</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/appointments" className={({ isActive }) => isActive ? 'active' : ''}>
+              <AppointmentsIcon />
+              <span>Записи</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/documents" className={({ isActive }) => isActive ? 'active' : ''}>
+              <DocumentsIcon />
+              <span>Документы</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>
+              <SettingsIcon />
+              <span>Настройки</span>
+            </NavLink>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="sidebar-footer">
+        <button className="logout-button" onClick={handleLogout}>
+          <LogoutIcon />
+          <span>Выйти</span>
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;
